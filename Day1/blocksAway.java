@@ -1,5 +1,13 @@
 import java.util.Scanner;
-
+/*
+This program is meant to find the amount of blocks you will have to walk
+to arrive to an specific place, using as directio L or R  accompanied by a
+number of blocks that you need to walk on that direction.
+Each direction must be separated with a comma and a space.
+Example:
+  L1, L2, R2
+  result: (-3,-2), 5 blocks traveled.
+*/
 public class blocksAway {
 	public static void main(String[] args) {
 		Scanner tcl = new Scanner(System.in);
