@@ -1,4 +1,5 @@
 import java.util.Scanner;
+package default;
 
 public class blocksAway{
   public static void main(String[] args){
