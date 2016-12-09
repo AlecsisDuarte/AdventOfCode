@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 /*
+--- Day 5: How About a Nice Game of Chess? ---
 This program consist in a creation of a MD5 hash,
 using a DoorID and an incrementing integer index
 starting with 0.

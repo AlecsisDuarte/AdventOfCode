@@ -2,12 +2,13 @@ import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 /*
- *You have to recover a Jammed message
- *sent by Santa by finding the most common
- *character on each columm
- *For part 2 you just have to find the least
- * commons, by changing the > for a <
- * in the expresion: if(letters[position[y]][y] > letters[x][y])
+--- Day 6: Signals and Noise ---
+You have to recover a Jammed message
+sent by Santa by finding the most common
+character on each columm
+For part 2 you just have to find the least
+commons, by changing the > for a <
+in the expresion: if(letters[position[y]][y] > letters[x][y])
  */
 public class jammingCommunications{
   public static void main(String[] args) throws FileNotFoundException{

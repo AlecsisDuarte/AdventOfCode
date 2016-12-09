@@ -1,5 +1,6 @@
 import java.util.*;
 /*
+--- Day 1: No Time for a Taxicab ---
 This program is meant to find the amount of blocks you will have to walk
 to arrive to an specific place, using as directio L or R  accompanied by a
 number of blocks that you need to walk on that direction.

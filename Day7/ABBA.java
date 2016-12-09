@@ -3,12 +3,13 @@ import java.io.File;
 import java.io.*;
 
 /*
-  ~~ Day 7: Internet Protocol Version 7 ~~
+  --- Day 7: Internet Protocol Version 7 ---
   For part 1: You have to find out if an ip address has TSL
   and for that, you have to find an ABBA annotation, which means
   that you have to find four-character sequence which consists of
   a pair of two differenc characters followed by the reverse of that
   pair, sush as xyyx or abba. But not inside the brackets.
+
   For part 2: You have to find out if an ip addres has SSL
   and for that you look for ABA anotations for example aba or xyyx
   and inside the brackets you have to find an BAB annotation, which
