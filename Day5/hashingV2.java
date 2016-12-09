@@ -25,12 +25,12 @@ public class hashingV2{
     System.out.print("Insert door ID: ");
     String doorId = tcl.nextLine();
     int i=0;
+    MessageDigest md = MessageDigest.getInstance("MD5");
     while(i<8){
       String hashtext ="";
       int position=0;
       do{
         byte[] bytesOfMessage = (doorId+index).getBytes("UTF-8");
-        MessageDigest md = MessageDigest.getInstance("MD5");
         byte[] thedigest = md.digest(bytesOfMessage);
         BigInteger bigInt = new BigInteger(1,thedigest);
         hashtext = bigInt.toString(16);
@@ -42,7 +42,7 @@ public class hashingV2{
       if(hashtext.charAt(5)>47 && hashtext.charAt(5)<56){
         position = hashtext.charAt(5)-48;
         if(password[position] == 0){
-          System.out.println(new String(hashtext));
+          System.out.println(hashtext);
           password[hashtext.charAt(5)-48]=hashtext.charAt(6);
           ++i;
         }
