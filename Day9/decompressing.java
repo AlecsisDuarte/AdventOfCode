@@ -27,13 +27,7 @@ public class decompressing{
     char[] uncompressed = tcl.nextLine().toCharArray();
     int reps = 0, steps = 0, ammountOfChars = 0;
     for(int i =0; i < uncompressed.length; i++){
-    	if(i == 0){
-    		steps = uncompressed[++i]-'0';
-        reps = Integer.parseInt(uncompressed[i+2]+""+uncompressed[i+3]);
-        ammountOfChars += (steps*reps);
-        i = steps + 5;
-    	}
-    	else if(uncompressed[i] == '(' && uncompressed[i-1] != ')'){
+    	if(uncompressed[i] == '(' ){
         String aux = "";
         while(uncompressed[++i] != 'x')
           aux += uncompressed[i];
@@ -43,7 +37,7 @@ public class decompressing{
           aux += uncompressed[i];
         reps = Integer.parseInt(aux);
         ammountOfChars += (steps*reps);
-        i +=steps;
+        i += steps;
       }
       else
       ammountOfChars++;
