@@ -25,13 +25,17 @@ to actually decompress the file; you'll have to come up with another way to
 get its decompressed length.
 
 What is the decompressed length of the file using this improved format?
+
+This coded didn't work
 */
 
 public class decompressingV2 {
+	static int ammountOfChars = 0;
+
 	public static boolean hasParentheses(String line) {
 		for (int i = 0; i < line.length(); i++)
-			if (line.charAt(i) == '(')
-				return true;
+		if (line.charAt(i) == '(')
+		return true;
 		return false;
 	}
 
@@ -45,16 +49,28 @@ public class decompressingV2 {
 		while (++x < (start + mainSteps + 1)) {
 			if (line.charAt(x) == '(') {
 				String aux = "";
-				while (line.charAt(++x) != 'x')
-					;
+				while (line.charAt(++x) != 'x')aux += line.charAt(x);
+				int steps = Integer.parseInt(aux);
 				int before = x + 1;
+				aux = "";
 				while (line.charAt(++x) != ')')
-					aux += line.charAt(x);
+				aux += line.charAt(x);
 				reps = Integer.parseInt(aux);
 				if (line.charAt(x + 1) != '(') {
 					reps *= mainReps;
 					mainSteps += String.valueOf(reps).length() - aux.length();
 					line = changeNumberInString(line, Integer.toString(reps), before, x);
+				}
+				int index = x;
+				while(line.charAt(++index) != ')');
+				if((index+steps+1) < line.length()){
+					index += steps;
+					if(line.charAt(index) != '('){
+						int lettersQuantity =0;
+						while(line.charAt(++index) != '(' || index < line.length())
+						lettersQuantity++;
+						ammountOfChars += lettersQuantity*(mainReps-1);
+					}
 				}
 			}
 		}
@@ -64,9 +80,8 @@ public class decompressingV2 {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		Scanner tcl = new Scanner(
-				new File("C:/Users/Alexis/OneDrive/Documents/AdventOfCode/Day9/uncompressed.txt")
-				);
-		int ammountOfChars = 0;
+		new File("C:/Users/Alexis/OneDrive/Documents/AdventOfCode/Day9/uncompressed.txt")
+		);
 		while (tcl.hasNext()) {
 			int steps = 0, reps = 0;
 			String uncompressed = tcl.nextLine();
@@ -74,11 +89,11 @@ public class decompressingV2 {
 				if (uncompressed.charAt(i) == '(') {
 					String aux = "";
 					while (uncompressed.charAt(++i) != 'x')
-						aux += uncompressed.charAt(i);
+					aux += uncompressed.charAt(i);
 					steps = Integer.parseInt(aux);
 					aux = "";
 					while (uncompressed.charAt(++i) != ')')
-						aux += uncompressed.charAt(i);
+					aux += uncompressed.charAt(i);
 					reps = Integer.parseInt(aux);
 					if (hasParentheses(uncompressed.substring(i + 1, i + steps))) {
 						uncompressed = multiplyMarkers(uncompressed, i, steps, reps);
@@ -87,7 +102,7 @@ public class decompressingV2 {
 						i += steps;
 					}
 				} else
-					ammountOfChars++;
+				ammountOfChars++;
 			}
 		}
 
@@ -95,4 +110,3 @@ public class decompressingV2 {
 		tcl.close();
 	}
 }
-// 1522764865 Incorrect
