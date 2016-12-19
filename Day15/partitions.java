@@ -68,10 +68,11 @@ button to get another capsule?
 */
 public class partitions{
   //For part 1 reduce diskammounts to 6
-  //And remoove the disk #7 in disks.txt
   static int disksAmmounts = 7;
+
   //At 0 = MaxPosition, at 1= actualPosition
   static int[][] disks = new int[disksAmmounts][2];
+  
   public static boolean rotateDisks(int time){
     int movements = 0;
     int count = 0;
@@ -90,7 +91,12 @@ public class partitions{
   }
 
   public static void main(String[] args) throws FileNotFoundException{
-    Scanner tcl = new Scanner(new File("C:/Users/Alexis/OneDrive/Documents/AdventOfCode/Day15/disks.txt"));
+    //For Part1 un uncomment this
+    // Scanner tcl = new Scanner(new File("C:/Users/Alexis/OneDrive/Documents/AdventOfCode/Day15/disks.txt"));
+
+    //And Comment this
+    Scanner tcl = new Scanner(new File("C:/Users/Alexis/OneDrive/Documents/AdventOfCode/Day15/disks2.txt"));
+
     int index = 0;
     int time = 0;
     boolean retrievedCapsuled = false;
