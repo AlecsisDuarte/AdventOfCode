@@ -117,8 +117,6 @@ public class pad{
       if(thousandHashes(triplets)){
         if(++keysAmmount > 63)
           keysFound = true;
-
-        System.out.println();
       }
     }
 
