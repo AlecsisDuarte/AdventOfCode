@@ -4,7 +4,8 @@ import 'dart:math';
 
 import '../utils/input_reader.dart';
 
-final int gridOverflow = 0;
+final int GRID_OVERFLOW = 10;
+final int MAX_DISTANCE = 10000;
 
 void main() async {
   File input = InputReader.openInputFile('Day6', 'input.txt');
@@ -15,14 +16,24 @@ void main() async {
 
   input.readAsLines().then((lines) {
     final List<Point> points = getPoints(lines);
-    final List<List<String>> grid = getGrid(points);
-    drawAreas(points, grid).then((newGrid) {
+    
+    final List<List<String>> mainGrid = getGrid(points);
+    drawAreas(points, mainGrid).then((newGrid) {
+      getLargestArea(mainGrid).then((max) {
+        print('Max Area: $max');
+        // printGrid(newGrid);
+      });
+    });
+
+    final List<List<String>> secondGrid = getGrid(points);
+    drawWithinMaxDistance(points, secondGrid).then((newGrid) {
+      getCenterRegion(newGrid).then((area) => print('Area whithin max distance: $area'));
       // printGrid(newGrid);
-      getLargestArea(grid).then((max) => print('Max Area: $max'));
     });
   });
 }
 
+/** Stores the coordinates information */
 class Point {
   int x;
   int y;
@@ -30,6 +41,7 @@ class Point {
   Point(this.x, this.y, {this.letter = null});
 }
 
+/** Stores which point is nearest to the origin*/
 class ClosestPoint {
   Point origin;
   Point closest;
@@ -37,6 +49,14 @@ class ClosestPoint {
   ClosestPoint(this.origin, this.closest);
 }
 
+/** Stores the sum of distances using as reference to the points */
+class Distance {
+  Point origin;
+  int distanceSum;
+  Distance(this.origin, this.distanceSum);
+}
+
+/** Stores the area the point has and whether is finite or not */
 class Area {
   String char;
   int area;
@@ -70,6 +90,32 @@ Future<List<List<String>>> drawAreas(
   return grid;
 }
 
+/** Draws all the areas of the points */
+Future<List<List<String>>> drawWithinMaxDistance(List<Point> points, List<List<String>> grid) async {
+  List<Future<Distance>> futureDistances = List<Future<Distance>>();
+  final int xLength = grid.length;
+  final int yLength = grid.first.length;
+
+  for (int y = 0; y < yLength; y++) {
+    for (int x = 0; x < xLength; x++) {
+      final Point origin = Point(x, y);
+      futureDistances.add(whithinDistance(origin, points));
+    }
+  }
+
+  Future.wait(futureDistances).then((distances) {
+    distances.forEach((distance) {
+      if (distance != null && distance.distanceSum < MAX_DISTANCE) {
+        int x = distance.origin.x;
+        int y = distance.origin.y;
+        grid[x][y] = '#';
+      }
+    });
+  });
+  return grid;
+}
+
+/** Returns the largest finite area */
 Future<int> getLargestArea(List<List<String>> grid) async {
   List<Area> areas = List();
 
@@ -79,32 +125,55 @@ Future<int> getLargestArea(List<List<String>> grid) async {
   final int limitX = xLength - 1;
   final int limitY = yLength - 1;
 
-  for(int y = 0; y < yLength; y++) {
-   for(int x = 0 ; x < xLength; x++)  {
-     String letter = grid[x][y];
-     if (letter != '.') {
-       if(isNearEdge(Point(x,y), limitX, limitY)) {
-         var area = areas.firstWhere((a) => a.char == letter, orElse: () => null);
-         if (area == null) {
-           areas.add(Area(letter, 1, true));
-         } else {
-           ++area.area;
-           area.infinite = true;
-         }
-       } else {
-         var area = areas.firstWhere((a) => a.char == letter, orElse: () => null);
-         if (area == null) {
-           areas.add(Area(letter, 1, false));
-         } else {
-           ++area.area;
-         }
-       }
-     }
-   }
+  for (int y = 0; y < yLength; y++) {
+    for (int x = 0; x < xLength; x++) {
+      String letter = grid[x][y];
+      if (letter != '.') {
+        if (isNearEdge(Point(x, y), limitX, limitY)) {
+          var area =
+              areas.firstWhere((a) => a.char == letter, orElse: () => null);
+          if (area == null) {
+            areas.add(Area(letter, 1, true));
+          } else {
+            ++area.area;
+            area.infinite = true;
+          }
+        } else {
+          var area =
+              areas.firstWhere((a) => a.char == letter, orElse: () => null);
+          if (area == null) {
+            areas.add(Area(letter, 1, false));
+          } else {
+            ++area.area;
+          }
+        }
+      }
+    }
   }
-
-  return areas.reduce((maxArea, area) => maxArea = maxArea.area < area.area && !area.infinite? area : maxArea).area;
+  // areas.forEach((a) => print('${a.char} - Area: ${a.area}, Infinite: ${a.infinite? 'true' : 'false'}'));
+  return areas
+      .reduce((maxArea, area) => maxArea = maxArea.infinite
+          ? area
+          : !area.infinite && maxArea.area < area.area ? area : maxArea)
+      .area;
 }
+
+/** Counts all the region that is below maximum distance */
+Future<int> getCenterRegion(List<List<String>> grid) async {
+  int regionSum = 0;
+
+  final int xLength = grid.length;
+  final int yLength = grid.first.length;
+
+  for (int y = 0; y < yLength; y++) {
+    for (int x = 0; x < xLength; x++) {
+      String char = grid[x][y];
+      if (char == '#') ++regionSum;
+    }
+  }
+  return regionSum;
+}
+
 /** Returns the closest Point or null if they have the same distance */
 Future<ClosestPoint> whoIsCloser(Point origin, List<Point> points) async {
   Queue closest = Queue<Point>();
@@ -136,6 +205,24 @@ Future<ClosestPoint> whoIsCloser(Point origin, List<Point> points) async {
   return ClosestPoint(origin, closest.length > 1 ? null : closest.first);
 }
 
+/** Returns the Distance when this is below maximum distance */
+Future<Distance> whithinDistance(Point origin, List<Point> points) async {
+  var distance = Distance(origin, 0);
+  
+  for (Point p in points) {
+    int minX = min(origin.x, p.x);
+    int maxX = max(origin.x, p.x);
+    int minY = min(origin.y, p.y);
+    int maxY = max(origin.y, p.y);
+
+    int dstnc = (maxX - minX + maxY - minY);
+    distance.distanceSum += dstnc;
+    if (distance.distanceSum >= MAX_DISTANCE) return null;
+  }
+  return distance;
+}
+
+/** Creates a grid to store al areas */
 List<List<String>> getGrid(List<Point> points) {
   final fPoint = points.first;
   int maxX = fPoint.x;
@@ -145,24 +232,28 @@ List<List<String>> getGrid(List<Point> points) {
     if (maxY < p.y) maxY = p.y;
   });
 
-  maxX += gridOverflow + 1;
-  maxY += gridOverflow + 1;
+  maxX += GRID_OVERFLOW + 1;
+  maxY += GRID_OVERFLOW + 1;
 
   return List.generate(maxX, (_) => List.filled(maxY, '.'));
 }
 
+/** Casts the lines to points */
 List<Point> getPoints(List<String> lines) {
   int charCode = 64; //We start at the @ character
+  int padding = (GRID_OVERFLOW / 2).round();
   return lines.map((line) {
     List<String> points = line.split(', ');
     int x = int.parse(points[0]);
     int y = int.parse(points[1]);
     if (++charCode == 91) charCode = 97;
 
-    return Point(x, y, letter: String.fromCharCode(charCode));
+    return Point(x + padding, y + padding,
+        letter: String.fromCharCode(charCode));
   }).toList();
 }
 
+/** Prints the specified grid */
 void printGrid(List<List<String>> grid) {
   final int xLength = grid.length;
   final int yLength = grid.first.length;
@@ -178,6 +269,7 @@ void printGrid(List<List<String>> grid) {
   print('There you go');
 }
 
+/** It validates wheter is near the edge or not */
 bool isNearEdge(Point p, int maxX, int maxY) {
   return (p.x == 0 || p.y == 0 || p.x == maxX || p.y == maxY);
 }
