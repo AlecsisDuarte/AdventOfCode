@@ -9,7 +9,10 @@ void main() async {
   partOne.readAsLines()
   .then((lines) async {
     List<Change> changes = await getChanges(lines);
-    bool isBool = true;
+    greaterThenThreeOpcodes(changes).then((qty) {
+      print("Part 1: There were ${qty} samples that behave like three or more opcodes");
+    });
+    getOpcodes(changes).then((opcodes) => print("Part 2: The opcodes"));
   });
 }
 
@@ -59,80 +62,169 @@ Future<List<int>> getNumbers(final String line) async {
   ];
 }
 
+Future<int> greaterThenThreeOpcodes(List<Change> changes) async {
+  List<Future<int>> futurePosibles = List<Future<int>>();
+  for (Change change in changes) {
+    futurePosibles.add(countPosibleOpcodes(change));
+  }
+  return (await Future.wait(futurePosibles)).where((p) => p > 2).length;
+}
+
+Future<List<int>> getOpcodes(List<Change> changes) async {
+  List<int> opcodePosition = List.filled(16, null);
+  Map<int, List<int>> posibleOpcodes = Map<int, List<int>>();
+  for (Change change in changes) {
+    List<int> positions = await getOpcodePositions(change);
+    posibleOpcodes.update(
+      change.instruction.opcode, 
+      (cds) {
+        cds.addAll(positions);
+        return cds;
+      }, 
+      ifAbsent: () => positions
+    );
+  }
+  return opcodePosition;
+}
+
+Future<int> countPosibleOpcodes(Change change) async {
+  List<int> before = change.registersBefore;
+  List<int> after = change.registersAfter;
+  Instruction instr = change.instruction;
+  List<Future<List<int>>> futureRegisters = List<Future<List<int>>>();
+  for (Function opcode in OPCODES) {
+    futureRegisters.add(opcode(before, instr.a, instr.b, instr.c) as Future<List<int>>);
+  }
+  
+  int count = await Future.wait(futureRegisters).then((registers) async {
+    List<Future<bool>> futureResponse = List<Future<bool>>();
+    for(List<int> register in registers) {
+        futureResponse.add(equalLists<int>(after, register));
+      // if (register != null) {
+      // }
+    }
+    var responses = (await Future.wait(futureResponse));
+    return responses.where((r) => r == true).length;
+  });
+  return count;
+}
+
+Future<List<int>> getOpcodePositions(Change change) async {
+  List<int> before = change.registersBefore;
+  List<int> after = change.registersAfter;
+  Instruction instr = change.instruction;
+  List<Future<List<int>>> futureRegisters = List<Future<List<int>>>();
+  for (Function opcode in OPCODES) {
+    futureRegisters.add(opcode(before, instr.a, instr.b, instr.c) as Future<List<int>>);
+  }
+  
+  return await Future.wait(futureRegisters).then((registers) async {
+    List<Future<bool>> futureResponse = List<Future<bool>>();
+    for(List<int> register in registers) {
+        futureResponse.add(equalLists<int>(after, register));
+    }
+    
+    return (await Future.wait(futureResponse).then((responses) {
+        List<int> indexes = List<int>();
+        for (int index = 0; index < responses.length; index++) {
+          if (responses[index]) indexes.add(index);
+        }
+        return indexes;
+      }));
+  });
+}
+
+Future<bool> equalLists<T>(Iterable<T> a, Iterable<T> b) async {
+  int index = 0;
+  if (a == null || b == null) return false;
+  return a.every((value) => b.elementAt(index++) == value);
+}
+
+List<Function> OPCODES = [addr, addi, mulr, muli, banr, bani, borr, bori, setr, seti, gtir, gtri, gtrr, eqir, eqri, eqrr];
+
 //OPCODES
 Future<List<int>> addr(List<int> before, int a, int b, int c) async {
   List<int> after = List<int>.from(before);
-  if (after.length <= c) {
+  if (after.length <= c || after.length <= a || after.length <= b) {
     return null;
   }
-  after[c] = a + b;
+  after[c] = after[a] + after[b];
   return after;
 }
 
 Future<List<int>> addi(List<int> before, int a, int b, int c) async {
   List<int> after = List<int>.from(before);
-  if (after.length <= c || after.length <= b) {
+  if (after.length <= c || after.length <= a) {
     return null;
   }
-  after[c] = a + after[b];
+  after[c] = after[a] + b;
   return after;
 }
 
 Future<List<int>> mulr(List<int> before, int a, int b, int c) async {
   List<int> after = List<int>.from(before);
-  if (after.length <= c) {
+  if (after.length <= c || after.length <= a || after.length <= b) {
     return null;
   }
-  after[c] = a * b;
+  after[c] = after[a] * after[b];
   return after;
 }
 
 Future<List<int>> muli(List<int> before, int a, int b, int c) async {
   List<int> after = List<int>.from(before);
-  if (after.length <= c || after.length <= b) {
+  if (after.length <= c || after.length <= a) {
     return null;
   }
-  after[c] = a * after[b];
+  after[c] = after[a] * b;
   return after;
 }
 
 Future<List<int>> banr(List<int> before, int a, int b, int c) async {
   List<int> after = List<int>.from(before);
-  if (after.length <= c) {
+  if (after.length <= c || after.length <= a || after.length <= b) {
     return null;
   }
-  after[c] = a & b;
+  after[c] = after[a] & after[b];
   return after;
 }
 
 Future<List<int>> bani(List<int> before, int a, int b, int c) async {
   List<int> after = List<int>.from(before);
-  if (after.length <= c || after.length <= b) {
+  if (after.length <= c || after.length <= a) {
     return null;
   }
-  after[c] = a & after[b];
+  after[c] = after[a] & b;
   return after;
 }
 
 Future<List<int>> borr(List<int> before, int a, int b, int c) async {
   List<int> after = List<int>.from(before);
-  if (after.length <= c) {
+  if (after.length <= c || after.length <= a || after.length <= b) {
     return null;
   }
-  after[c] = a | b;
+  after[c] = after[a] | after[b];
   return after;
 }
 
 Future<List<int>> bori(List<int> before, int a, int b, int c) async {
   List<int> after = List<int>.from(before);
-  if (after.length <= c || after.length <= b) {
+  if (after.length <= c || after.length <= a) {
     return null;
   }
-  after[c] = a | after[b];
+  after[c] = after[a] | b;
   return after;
 }
 
 Future<List<int>> setr(List<int> before, int a, int b, int c) async {
+  List<int> after = List<int>.from(before);
+  if (after.length <= c || after.length <= a) {
+    return null;
+  }
+  after[c] = after[a];
+  return after;
+}
+
+Future<List<int>> seti(List<int> before, int a, int b, int c) async {
   List<int> after = List<int>.from(before);
   if (after.length <= c) {
     return null;
@@ -141,21 +233,12 @@ Future<List<int>> setr(List<int> before, int a, int b, int c) async {
   return after;
 }
 
-Future<List<int>> seti(List<int> before, int a, int b, int c) async {
-  List<int> after = List<int>.from(before);
-  if (after.length <= c || after.length <= a) {
-    return null;
-  }
-  after[c] = a | after[a];
-  return after;
-}
-
 Future<List<int>> gtir(List<int> before, int a, int b, int c) async {
   List<int> after = List<int>.from(before);
-  if (after.length <= c || after.length <= a) {
+  if (after.length <= c || after.length <= b) {
     return null;
   }
-  after[c] = after[a] > b ? 1 : 0;
+  after[c] = a > after[b] ? 1 : 0;
   return after;
 }
 
@@ -164,15 +247,42 @@ Future<List<int>> gtri(List<int> before, int a, int b, int c) async {
   if (after.length <= c || after.length <= a) {
     return null;
   }
-  after[c] = a > after[b] ? 1 : 0;
+  after[c] = after[a] > b ? 1 : 0;
   return after;
 }
 
 Future<List<int>> gtrr(List<int> before, int a, int b, int c) async {
   List<int> after = List<int>.from(before);
+  if (after.length <= c || after.length <= a || after.length <= b) {
+    return null;
+  }
+  after[c] = after[a] > after[b] ? 1 : 0;
+  return after;
+}
+
+Future<List<int>> eqir(List<int> before, int a, int b, int c) async {
+  List<int> after = List<int>.from(before);
+  if (after.length <= c || after.length <= b) {
+    return null;
+  }
+  after[c] = a == after[b] ? 1 : 0;
+  return after;
+}
+
+Future<List<int>> eqri(List<int> before, int a, int b, int c) async {
+  List<int> after = List<int>.from(before);
   if (after.length <= c || after.length <= a) {
     return null;
   }
-  after[c] = a > b ? 1 : 0;
+  after[c] = after[a] == b ? 1 : 0;
+  return after;
+}
+
+Future<List<int>> eqrr(List<int> before, int a, int b, int c) async {
+  List<int> after = List<int>.from(before);
+  if (after.length <= c || after.length <= a || after.length <= b) {
+    return null;
+  }
+  after[c] = after[a] == after[b] ? 1 : 0;
   return after;
 }
