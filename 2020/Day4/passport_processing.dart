@@ -4,7 +4,7 @@ RegExp fieldRegex = new RegExp(r"(:?(?<field>\w{3})\:\S+(:?\ *|\n*))");
 const fieldGroupName = "field";
 const optionalField = "cid";
 RegExp fieldsRuledRegex = new RegExp(
-    r"(?:(?:byr:(?<byr>\d{4}))|(?:iyr:(?<iyr>\d{4}))|(?:eyr:(?<eyr>\d{4}))|(?:hgt:(?<hgt_cm>\d{3})cm)|(?:hgt:(?<hgt_in>\d{2})in)|(?:hcl:(?<hcl>#(?:[0-9]|[a-f]|[A-F]){6}))|(?:ecl:(?<ecl>(?:amb|blu|brn|gry|grn|hzl|oth)))|(?:pid:(?<pid>\d{9})))");
+    r"(?:(?:byr:(?<byr>\d{4}))|(?:iyr:(?<iyr>\d{4}))|(?:eyr:(?<eyr>\d{4}))|(?:hgt:(?<hgt_cm>\d{3})cm)|(?:hgt:(?<hgt_in>\d{2})in)|(?:hcl:(?<hcl>#(?:[0-9a-f]){6}))|(?:ecl:(?<ecl>(?:amb|blu|brn|gry|grn|hzl|oth)))|(?:pid:(?<pid>\d{9}))(?:\s|$))");
 
 void main(List<String> args) async {
   String input = await readInput(2020, 4);
@@ -45,6 +45,7 @@ bool validPassport(Set<String> fields) {
 
 bool passportFollowsRules(String passport) {
   int validFields = 0;
+  passport += " ";
   for (RegExpMatch match in fieldsRuledRegex.allMatches(passport)) {
     String groupName = getPopulatedGroupName(match);
     String value = match.namedGroup(groupName);
