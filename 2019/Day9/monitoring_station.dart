@@ -1,5 +1,4 @@
 import '../../utils/dart_utils.dart';
-import 'dart:math' show ;
 
 main() async {
   String input = await readInput(2019, 9);
@@ -42,16 +41,17 @@ class Point {
       Point(this.x, this.y, isAsteroid: this.isAsteroid, inSight: this.inSight);
 }
 
-int calculateInSightAsteroids(Point base, List<List<Point>> map) {
-  
-}
+int calculateInSightAsteroids(Point base, List<List<Point>> map) {}
 
 void markOutOfSight(Point base, Point asteroid, List<List<Point>> map) {
   if (base.x == asteroid.x)
     markOutOfSightOnY(base, asteroid, map);
-  else if (base.y == asteroid.y) markOutOfSightOnX(base, asteroid, map);
-  else if (base.isInDiagonal(asteroid)) markOutOfSightOnDiagonally(base, asteroid, map);
-  else markOutOfSightOnPattern(base, asteroid, map);
+  else if (base.y == asteroid.y)
+    markOutOfSightOnX(base, asteroid, map);
+  else if (base.isInDiagonal(asteroid))
+    markOutOfSightOnDiagonally(base, asteroid, map);
+  else
+    markOutOfSightOnPattern(base, asteroid, map);
 }
 
 void markOutOfSightOnY(Point base, Point asteroid, List<List<Point>> map) {
