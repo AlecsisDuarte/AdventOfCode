@@ -1,6 +1,7 @@
 name: "adventofcode"
 dependencies:
   path: ^1.6.4
+  angles: ^1.2.1
 
 environment:
   sdk: '>=2.10.0 <3.0.0'
